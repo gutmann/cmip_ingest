@@ -3,6 +3,7 @@ import gc,sys
 import numpy as np
 import netCDF4
 from bunch import Bunch
+import datetime
 # import mygis
 
 from cdo import Cdo
@@ -65,19 +66,31 @@ def find_atm_file(time,varname,info):
     filelist.sort()
     return filelist
 
-def find_sst_file(time,info):
-    file_base= info.atmdir+info.atmfile
-    file_base= file_base.replace("_GCM_",info.gcm_name)
-    file_base= file_base.replace("_VAR_","tos")
-    file_base= file_base.replace("6hrLev","day")
-    file_base= file_base.replace("_Y_",str(time.year))
-    file_base= file_base.replace("_EXP_",info.experiment)
-    sst_file = file_base.replace("_ENS_",info.ensemble)
+def find_sst_file(time, info):
+    file_base = info.atmdir + info.atmfile
+    file_base = file_base.replace("_GCM_",info.gcm_name)
+    file_base = file_base.replace("_VAR_","tos")
+    file_base = file_base.replace("6hrLev","day")
+    file_base = file_base.replace("_Y_","*") #str(time.year))
+    file_base = file_base.replace("_EXP_",info.experiment)
+    sst_file  = file_base.replace("_ENS_",info.ensemble)
 
     print(sst_file)
-    filelist=glob.glob(sst_file)
+    filelist = glob.glob(sst_file)
     filelist.sort()
-    return filelist
+    output_file = None
+    for f in filelist:
+        # e.g. tos_day_CanESM2_historical_r1i1p1_19710101-19801231.nc
+        start_year = int(f.split("/")[-1].split("_")[5][:4])
+        print(start_year)
+        end_year = int(f.split("/")[-1].split("_")[5].split("-")[1][:4])
+        if (time.year >= start_year) and (time.year <= end_year):
+            output_file = f
+
+    start_year = int(output_file.split("/")[-1].split("_")[5][:4])
+
+    print(time)
+    return output_file, int((time - datetime.datetime(start_year, 1,1)).days)
 
 
 def load_atm(time,info):
@@ -128,11 +141,12 @@ def load_atm(time,info):
 
 def load_sfc(time,info):
     """docstring for load_sfc"""
-    outputdata=Bunch()
-    basefile=info.orog_file
-    outputdata.hgt=read_nc(basefile,"orog").data[info.ymin:info.ymax,info.xmin:info.xmax]
+    outputdata = Bunch()
+    basefile = glob.glob(info.orog_file.replace("_GCM_",info.gcm_name))[0]
+    outputdata.hgt = read_nc(basefile,"orog").data[info.ymin:info.ymax,info.xmin:info.xmax]
 
-    sstfile, timeidx = find_sst_file(time)
+    print(time)
+    sstfile, timeidx = find_sst_file(time, info)
     # cdo griddes va_6hrLev_CCSM4_historical_r6i1p1_1980100100-1980123118.nc  > grid.txt
     # subprocess.call(["cdo","griddes","{gridfile}  > grid.txt".format(gridfile=basefile)])
     # cdo -f nc -s remapcon,grid.txt tos_day_CCSM4_historical_r6i1p1_19700101-19891231.nc tos2_day_CCSM4_historical_r6i1p1_19700101-19891231.nc
@@ -140,16 +154,18 @@ def load_sfc(time,info):
 
     global cdo
     if cdo is None:
-        cdo=Cdo()
+        cdo = Cdo()
     cdo.griddes("-f "+basefile+" >grid.txt")
     print("regridding:"+sstfile)
     cdo.remapcon("grid.txt ", input=sstfile, output="regridded_"+sstfile, options="-f nc")
     sstfile = "regridded_"+sstfile
-    outputdata.sst=read_nc(sstfile,"tos").data[timeidx,info.ymin:info.ymax,info.xmin:info.xmax]
+    outputdata.sst = read_nc(sstfile,"tos").data[timeidx,info.ymin:info.ymax,info.xmin:info.xmax]
 
-    outputdata.land=np.zeros(outputdata.hgt.shape)
-    landfrac=read_nc(basefile,"sftlf").data[info.ymin:info.ymax,info.xmin:info.xmax]
-    outputdata.land[landfrac>=0.5]=1
+    outputdata.land = np.zeros(outputdata.hgt.shape)
+    basefile = glob.glob(info.sftlf_file.replace("_GCM_",info.gcm_name))[0]
+    landfrac = read_nc(basefile,"sftlf").data[info.ymin:info.ymax,info.xmin:info.xmax]
+    outputdata.land[landfrac>=0.5] = 1
+
     return outputdata
 
 def load_data(time,info):

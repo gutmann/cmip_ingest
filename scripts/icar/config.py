@@ -136,7 +136,8 @@ def parse():
                atmfile=args.atmfile,
                gcm_name=GCM_NAMES[args.model],
                read_pressure=global_vert_coords[args.model],
-               orog_file="orography.nc",
+               orog_file="orog_fx__GCM__*.nc", 
+               sftlf_file="sftlf_fx__GCM__*.nc",
                output_file=args.output.replace("GCM",args.model)+args.ensemble+"_"+args.experiment+"_",
                version=version)
 
