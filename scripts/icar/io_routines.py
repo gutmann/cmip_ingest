@@ -3,7 +3,7 @@ import gc,sys
 import numpy as np
 import netCDF4
 from bunch import Bunch
-import mygis
+# import mygis
 
 from cdo import Cdo
 
@@ -11,9 +11,9 @@ global cdo
 cdo = None # don't initialize the climate data operators if they aren't going to be used.
 
 
-g=9.8
-atmvarlist=["ta","hus","ua","va"]
-icar_atm_var=["t","qv","u","v"]
+g = 9.81
+atmvarlist = ["ta","hus","ua","va"]
+icar_atm_var = ["t","qv","u","v"]
 
 # from mygis, modified to work with netCDF4
 def read_nc(filename,var="data",proj=None,returnNCvar=False):
@@ -27,7 +27,7 @@ def read_nc(filename,var="data",proj=None,returnNCvar=False):
         representation of the variable is returned instead of being read into
         memory immediately.
     '''
-    d=netCDF4.Dataset(filename, mode='r',format="nc")
+    d = netCDF4.Dataset(filename, mode='r',format="nc")
     outputdata=None
     if var != None:
         data=d.variables[var]
@@ -116,8 +116,10 @@ def load_atm(time,info):
 
     # outputdata.times=info.read_time(atmfile)
     try:
-        calendar = mygis.read_attr(atmfile_list[0], "calendar", varname="time")
-    except KeyError,IndexError:
+        d = netCDF4.Dataset(atmfile_list[0], mode='r',format="nc")
+        calendar = d.variables["time"].calendar
+        # calendar = mygis.read_attr(atmfile_list[0], "calendar", varname="time")
+    except (KeyError, IndexError) as e:
         calendar = None
 
     outputdata.calendar = calendar

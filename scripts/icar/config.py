@@ -9,7 +9,7 @@ from bunch import Bunch
 
 import io_routines as io
 
-version="1.0"
+version = "1.0"
 
 GCM_NAMES=dict(
     access="ACCESS1-3",
@@ -52,20 +52,20 @@ global_vert_coords=dict(
 
 
 def set_bounds(info):
-    atm_file=info.atmdir+info.atmfile
+    atm_file = info.atmdir + info.atmfile
     print(atm_file)
-    cmip_file= atm_file.replace("_Y_",str(info.start_year))        \
-                    .replace("_VAR_","hus")                        \
-                    .replace("_ENS_",info.ensemble)                \
-                    .replace("_EXP_",info.experiment)              \
-                    .replace("_GCM_",info.gcm_name)
+    cmip_file = atm_file.replace("_Y_",str(info.start_year))    \
+                        .replace("_VAR_","hus")                 \
+                        .replace("_ENS_",info.ensemble)         \
+                        .replace("_EXP_",info.experiment)       \
+                        .replace("_GCM_",info.gcm_name)
     print(cmip_file)
-    cmip_file=glob.glob(cmip_file)[0]
+    cmip_file = glob.glob(cmip_file)[0]
     print(cmip_file)
-    varlist=["lat","lon"]
-    
-    lat=io.read_nc(cmip_file,varlist[0]).data
-    lon=io.read_nc(cmip_file,varlist[1]).data
+    varlist = ["lat","lon"]
+
+    lat = io.read_nc(cmip_file,varlist[0]).data
+    lon = io.read_nc(cmip_file,varlist[1]).data
     if lon.max()>180:
         lon[lon>180]=lon[lon>180]-360
     if len(lat.shape)>1 or len(lon.shape)>1:
@@ -77,11 +77,11 @@ def set_bounds(info):
     info.xmax=min(lonbounds[-1]+1,len(lon))
     info.ymin=max(np.where(lat>=info.lat[0])[0][0]-1,0)
     info.ymax=min(np.where(lat<=info.lat[1])[0][-1]+1,len(lat))
-    
+
     lon,lat=np.meshgrid(lon[info.xmin:info.xmax],lat[info.ymin:info.ymax])
     info.lat_data=lat
     info.lon_data=lon
-    
+
 def make_timelist(info,hrs=6.0):
     dt=datetime.timedelta(hrs/24.0)
     info.ntimes=np.int(np.round((info.end_date-info.start_date).total_seconds()/60./60./hrs))
@@ -90,7 +90,7 @@ def make_timelist(info,hrs=6.0):
 def update_info(info):
     make_timelist(info)
     set_bounds(info)
-    
+
 
 def parse():
     parser= argparse.ArgumentParser(description='Convert cmip files to ICAR input forcing files')
@@ -115,17 +115,17 @@ def parse():
     parser.add_argument ('--print', action='store_true',
             default=False, help='print available models', dest='print_models')
     args = parser.parse_args()
-    
+
     if args.print_models:
         for k in global_vert_coords.keys():
             print(k)
         sys.exit()
-    
+
     start_year=int(args.start_year)
     nyears=int(args.nyears)
     start_date=datetime.datetime(start_year,1,1,0,0,0)
     end_date=datetime.datetime(start_year+nyears,1,1,0,0,0)
-    
+
     info=Bunch(lat=[float(args.lat_s),float(args.lat_n)],
                lon=[float(args.lon_w),float(args.lon_e)],
                start_date=start_date,  end_date=end_date,
@@ -139,5 +139,5 @@ def parse():
                orog_file="orography.nc",
                output_file=args.output.replace("GCM",args.model)+args.ensemble+"_"+args.experiment+"_",
                version=version)
-    
+
     return info
