@@ -44,3 +44,38 @@ if __name__ == '__main__':
         print(str(e))
         traceback.print_exc()
         os._exit(1)
+
+
+def simple_ingest(info):
+    # for year in years:
+    #     files_to_open = get_files(info, year)
+    #     ds = xr.open_mfdataset(files_to_open)
+    ds = xr.open_mfdataset(["hus_6hrLev_CanESM2_historical_r1i1p1_198001010000-198012311800.nc",
+                            "ta_6hrLev_CanESM2_historical_r1i1p1_198001010000-198012311800.nc",
+                            "ua_6hrLev_CanESM2_historical_r1i1p1_198001010000-198012311800.nc",
+                            "va_6hrLev_CanESM2_historical_r1i1p1_198001010000-198012311800.nc",
+                            "orog_fx_CanESM2_historical_r0i0p0.nc",
+                            "sftlf_fx_CanESM2_historical_r0i0p0.nc"])
+
+    # tos_file = get_tos_file(info, years)
+    # if tos files have not been regridded:
+    # use CDO to regrid tos
+    tos = xr.open_mfdataset("regridded_tos_day_CanESM2_historical_r1i1p1_19710101-19801231.nc")
+    tos_filled = tos["tos"].reindex_like(ds['time'], method='nearest')
+    ds["tos"] = tos_filled
+    ds["tos"].values = tos_filled.values # not clear why this is needed, but the actual data don't seem to copy over otherwise
+
+    # add z variables
+    # add p variables
+    # dilate tos?
+    # convert, e.g. t to potential t, modify variable attributes
+
+    # alternative strategy :
+    # ds = xr.open_mfdataset("*")
+    for y in years:
+        start_date = "{}-01-01".format(y)
+        end_date = "{}-01-01".format(y+1)
+        current_data = ds.sel(time=slice(start_date, end_date))
+
+
+    # ds.to_netcdf(info.output_file.format(year))
