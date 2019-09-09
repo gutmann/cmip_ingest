@@ -1,18 +1,6 @@
 import numpy as np
 
-import mygis
-from bunch import Bunch
-
-def vcoord(filename):
-    """compute the vertical coordinate in space and time for a given file"""
-    na=np.newaxis
-    ptop = mygis.read_nc(filename,"ptop").data
-    sigma = mygis.read_nc(filename,"lev").data[na,:,na,na]
-    ps= mygis.read_nc(filename,"ps").data[:,na,:,:]
-    p= ptop+sigma*(ps-ptop)
-    return p
-
-def xr_vcoord(ds):
+def vcoord(ds):
     """compute the vertical coordinate in space and time for a given file"""
     na=np.newaxis
     ptop = ds["ptop"].values
@@ -23,6 +11,7 @@ def xr_vcoord(ds):
     pressure_attrs = {"standard_name":"air_pressure",
                       "units":"Pa"}
     output_data = ds["ta"].copy()
+    output_data.name = "pressure"
     output_data.attrs = pressure_attrs
     output_data.values = p
 

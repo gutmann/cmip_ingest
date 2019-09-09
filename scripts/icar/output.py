@@ -1,6 +1,6 @@
 import numpy as np
-import mygis
-from bunch import Bunch
+# import mygis
+# from bunch import Bunch
 
 def write_file(date,info,cmip):
     """writes cmip input data to a netcdf file"""
@@ -63,5 +63,5 @@ def write_file(date,info,cmip):
     qvatts=Bunch(standard_name="", long_name="Specific Humidity",units="kg kg**-1")
 
     # write to output file
-    mygis.write(filename=filename,varname="qv",data=cmip.qv,dims=dims, attributes=qvatts,dtype="f",
-                  extravars=extra_vars)#,history=" Produced by cmip2icar v."+info.version)
+    # mygis.write(filename=filename,varname="qv",data=cmip.qv,dims=dims, attributes=qvatts,dtype="f",
+    #               extravars=extra_vars)#,history=" Produced by cmip2icar v."+info.version)
