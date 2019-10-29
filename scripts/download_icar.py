@@ -50,6 +50,8 @@ from download import get_dataset
 #   cdo griddes sample_file.nc  > grid.txt
 #  then remap to it
 #   cdo -f nc -s remapcon,grid.txt rotated_pole_data.nc output_data.nc
+#
+# ftp://ftp.ceda.ac.uk/badc/cmip6/data/CMIP6/ScenarioMIP/MRI/MRI-ESM2-0/ssp585/r1i1p1f1/6hrLev/ps
 
 # 6 Hourly, high res download
 core_variables = [{"var_name":"va", "domain":"atmos", "interval":"6hr"},
@@ -78,12 +80,12 @@ core_variables = [{"var_name":"va", "domain":"atmos", "interval":"6hr"},
 
 
 
-def main(model="CCSM4", run="r6i1p1", scenario="historical", start_date="19800101", end_date="19810101"):
+def main(mip="cmip5", model="CCSM4", run="r6i1p1", scenario="historical", start_date="19800101", end_date="19810101"):
 
     for v in core_variables:
         print(v)
         try:
-            get_dataset.download(model=model, run=run, scenario=scenario, start_time=start_date, end_time=end_date, **v)
+            get_dataset.download(mip=mip, model=model, run=run, scenario=scenario, start_time=start_date, end_time=end_date, **v)
         except Exception as e:
             print("Error: ")
             print(e)
@@ -93,6 +95,7 @@ if __name__ == '__main__':
     try:
         parser= argparse.ArgumentParser(description='Download ICAR data from CMIP5 FTP archive. ',
                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        parser.add_argument('-mip',   dest="mip",   nargs="?", action='store', default="cmip5",       help="MIP to look for data from (cmip5,cmip6)")
         parser.add_argument('-model', dest="model", nargs="?", action='store', default="CanESM2",     help="CMIP5 Model name (e.g. CCSM4, CanESM2, ...)")
         parser.add_argument('-run',   dest="run",   nargs="?", action='store', default="r1i1p1",      help="run, initialization, physics member (e.g. r1i1p1)")
         parser.add_argument('-scen',  dest="scen",  nargs="?", action='store', default="historical",  help="scenario (e.g. historical, rcp85)")
@@ -106,7 +109,7 @@ if __name__ == '__main__':
 
         verbose = args.verbose
 
-        exit_code = main(model=args.model, run=args.run, scenario=args.scen, start_date=args.start, end_date=args.end)
+        exit_code = main(mip=args.mip, model=args.model, run=args.run, scenario=args.scen, start_date=args.start, end_date=args.end)
 
         if exit_code is None:
             exit_code = 0

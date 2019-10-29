@@ -5,6 +5,8 @@ import xarray as xr
 
 # example_url :
 # "ftp://ftp.ceda.ac.uk/badc/cmip5/data/cmip5/output1/NOAA-GFDL/GFDL-ESM2M/rcp85/6hr/atmos/6hrLev/r1i1p1/latest/va/va_6hrLev_GFDL-ESM2M_rcp85_r1i1p1_2096010100-2100123123.nc"
+# "ftp://ftp.ceda.ac.uk/badc/cmip6/data/CMIP6/ScenarioMIP/MRI/MRI-ESM2-0/ssp585/r1i1p1f1/6hrLev/ta/gn/latest/ta_6hrLev_MRI-ESM2-0_ssp585_r1i1p1f1_gn_208210010000-208210311800.nc"
+# CMIP6 scenarios: ssp119,ssp126,ssp245,ssp370,ssp434,ssp460,ssp534-over,ssp585
 
 ftpsite = "ftp.ceda.ac.uk"
 base_directory = "badc/cmip5/data/cmip5/output1"
